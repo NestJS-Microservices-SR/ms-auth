@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { RegisterUserDTO } from './dto';
+import { LoginUserDTO, RegisterUserDTO } from './dto';
 import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 
@@ -19,7 +19,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
 
   async registerUser(registerUserDto: RegisterUserDTO) {
     const { email, name, password } = registerUserDto;
-    console.log(registerUserDto);
+
     try {
       const user = await this.user.findUnique({
         where: {
@@ -42,10 +42,52 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         },
       });
 
+      const { password: _, ...rest } = newUser;
+
       return {
-        user: newUser,
-        token: 'abc'
+        user: rest,
+        token: 'abc',
+      };
+    } catch (error) {
+      throw new RpcException({
+        status: 400,
+        message: error.message,
+      });
+    }
+  }
+
+  async loginUser(loginUserDto: LoginUserDTO) {
+    const { email, password } = loginUserDto;
+
+    try {
+      const user = await this.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw new RpcException({
+          status: 400,
+          message: 'User/Password not valid',
+        });
       }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        throw new RpcException({
+          status: 400,
+          message: 'User/Password not valid',
+        });
+      }
+
+      const { password: _, ...rest } = user;
+
+      return {
+        user: rest,
+        token: 'abc',
+      };
     } catch (error) {
       throw new RpcException({
         status: 400,
