@@ -101,4 +101,22 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       });
     }
   }
+
+  async verifyToken(token: string) {
+    try {
+      const { sub, iat, exp, ...user } = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      return {
+        user,
+        token: await this.signJwt(user),
+      };
+    } catch (error) {
+      throw new RpcException({
+        status: 401,
+        message: 'Invalid token',
+      });
+    }
+  }
 }
