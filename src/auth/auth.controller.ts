@@ -19,6 +19,6 @@ export class AuthController {
 
   @MessagePattern('auth.verify.user')
   verifyUser(data: any) {
-    return 'verify user';
+    return data;
   }
 }
