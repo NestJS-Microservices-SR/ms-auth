@@ -18,6 +18,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
 
   async registerUser(registerUserDto: RegisterUserDTO) {
     const { email, name, password } = registerUserDto;
+    console.log(registerUserDto);
     try {
       const user = await this.user.findUnique({
         where: {
@@ -32,11 +33,11 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         });
       }
 
-      const newUser = this.user.create({
+      const newUser = await this.user.create({
         data: {
-          email,
-          name,
-          password,
+          email: email,
+          name: name,
+          password: password,
         },
       });
 
